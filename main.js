@@ -159,7 +159,7 @@ sunriseCard.innerHTML = `
             let hrForecastDate = new Date(hourlyForecast[i].dt_txt);
             let hr = hrForecastDate.getHours();
             let a = 'PM';
-            if(hr < 0) a =  'AM';
+            if(hr < 12) a =  'AM';
             if(hr == 0) hr =  12;
             if(hr > 12) hr =  hr - 12;
             hourlyForecastCard.innerHTML += `
@@ -227,7 +227,7 @@ function getCityCoordinates(){
       alert(`Failed to fetch coordinates of ${{cityName}}`);
     });
 }
-let metric = "units=metric";
+// let metric = "units=metric";
 function displayForCast(cityName){
 
 const forcastUrl ='https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${ApiKey}&${metric}';
@@ -306,5 +306,6 @@ if (ctx) {
     alert('City not found. Please try again.');
 });
 
+displayForCast(cityName);
 }
 seatchBtn.addEventListener( 'click', getCityCoordinates) ;
