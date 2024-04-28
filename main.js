@@ -5,6 +5,11 @@ currentWeatherCard = document.querySelectorAll('.weather-left .card')[0],
 fiveDaysForecastCard = document.getElementById('dayForecast');
 aqiCard = document.querySelectorAll('.highlights .card')[0],
 sunriseCard = document.querySelectorAll('.highlights .card')[1],
+humidityVal = document.getElementById( "humidityVal" ),
+pressureVal = document.getElementById( "pressureVal" ),
+visibilityVal = document.getElementById( "visibilityVal" ),
+windSpeedVal = document.getElementById( "windSpeedVal" ),
+feelsVal = document.getElementById( "feelsVal" ),
 aqiList = ['Good', 'Fair', 'Moderate','Poor','Very Poor'];
 
 function getWeatherDetails(name , lat , lon , country , state){
@@ -105,11 +110,12 @@ function getWeatherDetails(name , lat , lon , country , state){
 </div>
         `;
 // console.log(data);
-let { sunrise, sunset } = data.sys;
-let { timezone } = data;
-
-let sRiseTime = moment.unix(sunrise).utcOffset(timezone / 60).format('hh:mm A');
-let sSetTime = moment.unix(sunset).utcOffset(timezone / 60).format('hh:mm A');
+let { sunrise, sunset } = data.sys,
+ { timezone , visibility } = data,
+ {humidity , pressure , feels_like} = data.main,
+ {speed} = data.wind,
+ sRiseTime = moment.unix(sunrise).utcOffset(timezone / 60).format('hh:mm A'),
+ sSetTime = moment.unix(sunset).utcOffset(timezone / 60).format('hh:mm A');
 
 sunriseCard.innerHTML = `
     <div class="card-head">
@@ -135,6 +141,13 @@ sunriseCard.innerHTML = `
             </div>
         </div>
     </div>`;
+      humidityVal.innerHTML = `${humidity}%`;
+      pressureVal.innerHTML = `${pressure}hpa`;
+      visibilityVal.innerHTML = `${visibility / 1000}km`;
+      windSpeedVal.innerHTML = `${speed}m/s`;
+      feelsVal.innerHTML = `${(feels_like - 273.15).toFixed(2)}&deg;C`;
+      
+
 }).catch(()=> {
     alert('Failed to  load weather data');
 });
@@ -196,5 +209,84 @@ function getCityCoordinates(){
       alert(`Failed to fetch coordinates of ${{cityName}}`);
     });
 }
+let metric = "units=metric";
+function displayForCast(cityName){
 
+const forcastUrl ='https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${ApiKey}&${metric}';
+
+fetch(forcastUrl)
+.then(response => response.json())
+.then(data =>{
+ 
+   console.log(data);
+   const forecastByDate=[];
+   const fiveForecastDay=data.list.filter(responseLigne=>{
+       const date = new Date(responseLigne.dt_txt).getDate()
+       if(!forecastByDate.includes(date)){
+         return  forecastByDate.push(date)
+       }
+   })
+   // filtrer les dates
+   const forecastsDays = fiveForecastDay.map(el => {
+       const date = new Date(el.dt_txt).toLocaleString('fr-FR',{weekday:'long'});
+       return date;
+   });
+   // console.log(forecastsDays)
+   forecastsDays.forEach(el => {
+       console.log("Date:", el.date);
+   })
+   //filtrer par température
+   const forecastsTemp = fiveForecastDay.map(el => {
+       const temperature = el.main.temp;
+       return temperature;
+   })
+   forecastsTemp.forEach(el => {
+       console.log("Température:", el.temperature);
+   })
+
+ // Récupérer l'élément canvas
+
+const ctx = document.getElementById('myChart');
+
+// Vérifier si l'élément canvas existe
+if (ctx) {
+    const existingChart = Chart.getChart(ctx);
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
+    // Créer un nouveau graphique
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: forecastsDays,
+            datasets: [{
+                label: 'Température',
+                data: forecastsTemp,
+                borderWidth: 1,
+                borderColor: 'black',
+                backgroundColor: 'blue dark'
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+} else {
+    console.error("L'élément canvas avec l'ID 'myChart' n'a pas été trouvé.");
+}
+
+
+
+})
+.catch(error => {
+    console.error('Error fetching weather data:', error);
+    alert('City not found. Please try again.');
+});
+
+}
 seatchBtn.addEventListener( 'click', getCityCoordinates) ;
