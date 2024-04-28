@@ -4,6 +4,7 @@ api_key = '3afd4977adc22ca910dc667a7499c45f' ,
 currentWeatherCard = document.querySelectorAll('.weather-left .card')[0],
 fiveDaysForecastCard = document.getElementById('dayForecast');
 aqiCard = document.querySelectorAll('.highlights .card')[0],
+sunriseCard = document.querySelectorAll('.highlights .card')[1],
 aqiList = ['Good', 'Fair', 'Moderate','Poor','Very Poor'];
 
 function getWeatherDetails(name , lat , lon , country , state){
@@ -104,6 +105,36 @@ function getWeatherDetails(name , lat , lon , country , state){
 </div>
         `;
 // console.log(data);
+let { sunrise, sunset } = data.sys;
+let { timezone } = data;
+
+let sRiseTime = moment.unix(sunrise).utcOffset(timezone / 60).format('hh:mm A');
+let sSetTime = moment.unix(sunset).utcOffset(timezone / 60).format('hh:mm A');
+
+sunriseCard.innerHTML = `
+    <div class="card-head">
+        <p>Sunrise & sunset</p>
+    </div>
+    <div class="sunrise-sunset">
+        <div class="item">
+            <div class="icon">
+                <i class="fa-light fa-sunrise fa-4x"></i>
+            </div>
+            <div>
+                <p>Sunrise</p>
+                <h2>${sRiseTime}</h2>
+            </div>
+        </div>
+        <div class="item">
+            <div class="icon">
+                <i class="fa-light fa-sunset fa-4x"></i>
+            </div>
+            <div>
+                <p>Sunset</p>
+                <h2>${sSetTime}</h2>
+            </div>
+        </div>
+    </div>`;
 }).catch(()=> {
     alert('Failed to  load weather data');
 });
